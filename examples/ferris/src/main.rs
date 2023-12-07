@@ -8,6 +8,7 @@ use psx::gpu::{link_list, Packet, TexCoord, Vertex};
 use psx::include_tim;
 use psx::math::{f16, rotate_x, rotate_y, rotate_z, Rad};
 use psx::{dma, dprintln, Framebuffer};
+use psx::sys::gamepad::{Gamepad, Button};
 
 // We don't really need a heap for this demo, but the `sort_by_key` function is
 // in the `alloc` crate so it's unavailable unless we have a heap (even if it
@@ -72,7 +73,10 @@ fn main() {
 
     let vel = Rad(64);
 
+    let mut gamepad = Gamepad::new();
+
     loop {
+        dprintln!(txt, "TRIANGLE: {}", gamepad.poll_p1().pressed(Button::Triangle));
         theta += vel * 2;
         phi += vel * 4;
         psi += vel;
