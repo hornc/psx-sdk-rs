@@ -76,7 +76,6 @@ fn main() {
     let mut gamepad = Gamepad::new();
 
     loop {
-        dprintln!(txt, "TRIANGLE: {}", gamepad.poll_p1().pressed(Button::Triangle));
         theta += vel * 2;
         phi += vel * 4;
         psi += vel;
@@ -84,6 +83,7 @@ fn main() {
         dprintln!(txt, "theta: {:#x?}", theta.0);
         dprintln!(txt, "phi: {:#x?}", phi.0);
         dprintln!(txt, "psi: {:#x?}", psi.0);
+        dprintln!(txt, "TRIANGLE: {}", gamepad.poll_p1().pressed(Button::Triangle));
 
         // We want some way to return to the loader if this is a loadable executable
         if cfg!(feature = "loadable_exe") {
