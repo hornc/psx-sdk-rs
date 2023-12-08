@@ -74,6 +74,13 @@ impl Framebuffer {
             ],
             swapped: false,
         };
+
+        #[cfg(feature = "EU_region")]
+        let video_mode = VideoMode::PAL;
+
+        #[cfg(not(feature = "EU_region"))]
+        let video_mode = VideoMode::NTSC;
+
         GP1::skip_load()
             .reset_gpu()
             .dma_mode(Some(DMAMode::GP0))
