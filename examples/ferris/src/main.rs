@@ -9,6 +9,8 @@ use psx::include_tim;
 use psx::math::{f16, rotate_x, rotate_y, rotate_z, Rad};
 use psx::{dma, dprintln, Framebuffer};
 use psx::sys::gamepad::{Gamepad, Button};
+use psx::hw::irq::IRQ;
+use core::mem::MaybeUninit;
 
 // We don't really need a heap for this demo, but the `sort_by_key` function is
 // in the `alloc` crate so it's unavailable unless we have a heap (even if it
@@ -74,7 +76,10 @@ fn main() {
     let vel = Rad(64);
 
     let mut gamepad = Gamepad::new();
-
+    let mut p1 = gamepad.poll_p1();
+    let mut tri = false;
+    let mut vblank = false;
+    let mut released = true;
     loop {
         theta += vel * 2;
         phi += vel * 4;
@@ -83,7 +88,9 @@ fn main() {
         dprintln!(txt, "theta: {:#x?}", theta.0);
         dprintln!(txt, "phi: {:#x?}", phi.0);
         dprintln!(txt, "psi: {:#x?}", psi.0);
-        dprintln!(txt, "TRIANGLE: {}", gamepad.poll_p1().pressed(Button::Triangle));
+
+        dprintln!(txt, "TRIANGLE: {}", tri);
+        dprintln!(txt, "VBlanking: {} (toggle w/ SELECT)", vblank);
 
         // We want some way to return to the loader if this is a loadable executable
         if cfg!(feature = "loadable_exe") {
@@ -116,7 +123,19 @@ fn main() {
             }
         });
         fb.draw_sync();
-        fb.wait_vblank();
+        p1 = gamepad.poll_p1();
+
+        tri = p1.pressed(Button::Triangle);
+        if released & p1.pressed(Button::Select) {
+            vblank = !vblank;
+            released = false;
+        } else if p1.released(Button::Select) {
+            released = true;
+        }
+        if vblank {
+            fb.wait_vblank();
+        }
+
         fb.dma_swap(&mut gpu_dma);
     }
 }
