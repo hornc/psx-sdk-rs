@@ -95,7 +95,7 @@ fn main() {
         dprintln!(txt, "psi: {:#x?}", psi.0);
 
         dprintln!(txt, "TRIANGLE: {}", tri);
-        dprintln!(txt, "VBlanking: {} (toggle w/ SELECT)", vblank);
+        dprintln!(txt, "VBlank wait: {} (toggle w/ SELECT)", vblank);
         dprintln!(txt, "Gamepad enabled: {} (disable w/ START)", gamepadon);
         dprintln!(txt, "IRQ 0: {}", fb.irq_status.to_bits());
 
