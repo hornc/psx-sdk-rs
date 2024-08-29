@@ -10,7 +10,11 @@ use psx::math::{f16, rotate_x, rotate_y, rotate_z, Rad};
 use psx::{dma, dprintln, Framebuffer};
 use psx::sys::gamepad::{Gamepad, Button};
 use psx::hw::irq::IRQ;
+use psx::hw::irq;
 use core::mem::MaybeUninit;
+use psx::hw::Register;
+use psx::sys::kernel;
+
 
 // We don't really need a heap for this demo, but the `sort_by_key` function is
 // in the `alloc` crate so it's unavailable unless we have a heap (even if it
@@ -80,6 +84,7 @@ fn main() {
     let mut tri = false;
     let mut vblank = false;
     let mut released = true;
+    let mut gamepadon = true;
     loop {
         theta += vel * 2;
         phi += vel * 4;
@@ -91,6 +96,8 @@ fn main() {
 
         dprintln!(txt, "TRIANGLE: {}", tri);
         dprintln!(txt, "VBlanking: {} (toggle w/ SELECT)", vblank);
+        dprintln!(txt, "Gamepad enabled: {} (disable w/ START)", gamepadon);
+        dprintln!(txt, "IRQ 0: {}", fb.irq_status.to_bits());
 
         // We want some way to return to the loader if this is a loadable executable
         if cfg!(feature = "loadable_exe") {
@@ -123,18 +130,34 @@ fn main() {
             }
         });
         fb.draw_sync();
-        p1 = gamepad.poll_p1();
+        if gamepadon {
+            p1 = gamepad.poll_p1();
 
-        tri = p1.pressed(Button::Triangle);
-        if released & p1.pressed(Button::Select) {
-            vblank = !vblank;
-            released = false;
-        } else if p1.released(Button::Select) {
-            released = true;
+            tri = p1.pressed(Button::Triangle);
+            if released & p1.pressed(Button::Select) {
+                vblank = !vblank;
+                released = false;
+            } else if p1.released(Button::Select) {
+                released = true;
+                fb.irq_status.ack_all();
+            }
+            // Try a button press to stop the Gamepad (and MC)..
+            if p1.pressed(Button::Start) {
+                vblank = true;
+                gamepadon = false;
+                unsafe {
+                    kernel::psx_stop_pad();
+                }
+            }
         }
+
         if vblank {
             fb.wait_vblank();
         }
+
+        //while !fb.irq_status.requested(IRQ::Vblank) {
+        //    fb.irq_status.load();
+        //}
 
         fb.dma_swap(&mut gpu_dma);
     }
