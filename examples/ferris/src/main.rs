@@ -77,7 +77,7 @@ fn main() {
     let mut phi = FRAC_PI_8 / 4;
     let mut psi = FRAC_PI_8 / 8;
 
-    let vel = Rad(64);
+    let vel = Rad(128);  // was 64 (speed of rotation)
 
     let mut gamepad = Gamepad::new();
     let mut p1 = gamepad.poll_p1();
